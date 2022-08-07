@@ -1,0 +1,128 @@
+---
+title: "EDS212Resources"
+author: "Adelaide Robinson"
+date: '2022-08-05'
+output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+## R Markdown Setup
+
+Add packages in the setup chunk\
+the warning chunk sets warnings to not show up in the whole document
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(palmerpenguins)
+```
+
+# R Markdown notes
+
+adding a line break, two trailing spaces and then hit return
+
+# Github
+
+## Adding files to github
+
+make sure you are in the terminal and not the console
+
+-   gitadd -A (staging all the files)
+-   git commit -m "my commit message"
+-   git push
+-   git status - check the status
+
+## Adding to gitignore
+
+click on the git ignore file
+
+type nameofdoc.filetype for a specific file
+
+\*.filetype for an entire file type
+
+example: eds212.html, \*.html
+
+## Working collaboratively in git
+
+### Working without Branches
+
+This workflow is effective if not working on the same files at the same
+time. Also a good workfolow if you are working on different computers.
+
+One person goes onto github and creates a project, and then add
+collaborators, found under settings, collaborators
+
+Collaborator should get a link, they can then clone the project, create
+as a project on their computer and then make changes. when done push
+their changes.Make sure to save before pushing.
+
+The second person should be able to pull git pull and see those changes.
+
+# GGplot
+
+Add the tidyverse package in the setup chunk, and make sure data is
+available
+
+```{r}
+
+#ggplot(data and mapping, anything to do with variables goes under aes) + type of plot
+#basic scatterplot
+ggplot(data = penguins, mapping = aes(x = body_mass_g, y = flipper_length_mm)) + geom_point(aes(color = species)) + labs(title = "Penguin", y = "Flipper length (mm)", x = "Body Mass (g)") 
+
+
+
+```
+
+# Functions
+
+## Basic Function
+
+```{r}
+#first give the variables in the function, then define 
+standard_weight <- function(a , b, L) {
+  a * L^b }
+  
+#plug numbers into the function
+great_barracuda <- standard_weight(a = 0.0181 , b = 3.27 , L = 60)
+great_barracuda
+```
+
+## Logistic Growth Function
+
+N~t~ = k/ 1 + (k - N~0~ / N~0~)e^-rt^ this function tells you the number
+of individuals in a population given the initial population, carrying
+capacity, the time and the rate
+
+```{r}
+#write this equation as a function r can use 
+#reminder that to use e in r use exp()
+pop_logistic <- function(carryingcap, init_pop, rate, time_yr) { carryingcap/ (1 + ((carryingcap - init_pop)/init_pop) * exp(- rate * time_yr))
+  
+}
+#plug in given numbers to find exact population at a given time
+pop_logistic(carryingcap = 2580, init_pop = 230, rate = 0.32, time_yr = 2.4)
+# or create a sequence and show it over time
+time_seq <- seq( from = 0, to = 20, by = 1)
+#and then plug it in
+chipmunk_pop <- pop_logistic(carryingcap = 2580, init_pop = 230, rate = 0.32, time_yr = time_seq)
+#make this into a dataframe to graph
+chip_dataframe <- data_frame(time_seq, chipmunk_pop)
+#then graph
+ggplot(data = chip_dataframe, aes(x = time_seq , y = chipmunk_pop)) + geom_point() + labs( title = "Chipmunk Population", x = "Time (yrs)", y = "Chipmunk Population Size")
+```
+
+## Solving the function for a sequence
+
+```{r}
+# make a vector with possible fish lengths, use the seq function and from, to and by
+barracuda_length <- seq(from = 0 , to = 200 , by = 1)
+#estimate weights using this vector
+#plugging in known values for a and b
+barracuda_weight <- standard_weight( a = 0.0181, b = 3.27 , L = barracuda_length)
+#make these two vectors into a dataframe 
+barracuda_dataframe <- data.frame(x = barracuda_length , y = barracuda_weight)
+```
