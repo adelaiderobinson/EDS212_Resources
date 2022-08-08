@@ -19,6 +19,8 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(palmerpenguins)
+library(deSolve)
+library(kableExtra)
 ```
 
 # R Markdown notes
@@ -26,6 +28,16 @@ library(palmerpenguins)
 adding a line break, two trailing spaces and then hit return
 
 # Github
+
+## setting up a project to be used on github
+
+-   in the console type usethis::use_git make sure it is locally
+    controlled
+
+-   yes twice it will restart and be committed this is creating a git
+    repository on our computer this still only exists on our computer
+
+-   usethis::use_github, saves it on github, should open github
 
 ## Adding files to github
 
@@ -51,7 +63,7 @@ example: eds212.html, \*.html
 ### Working without Branches
 
 This workflow is effective if not working on the same files at the same
-time. Also a good workfolow if you are working on different computers.
+time. Also a good workflow if you are working on different computers.
 
 One person goes onto github and creates a project, and then add
 collaborators, found under settings, collaborators
@@ -125,4 +137,177 @@ barracuda_length <- seq(from = 0 , to = 200 , by = 1)
 barracuda_weight <- standard_weight( a = 0.0181, b = 3.27 , L = barracuda_length)
 #make these two vectors into a dataframe 
 barracuda_dataframe <- data.frame(x = barracuda_length , y = barracuda_weight)
+```
+
+# Derivatives
+
+Taking the derivative for an expression
+
+```{r}
+#define the expression
+func1 <- expression(5 * x ^ 2)
+#take the derivative, define the variable which you are taking the derivative in respect to
+my_deriv <- deriv(func1, "x")
+my_deriv
+#define x to solve for a specific number
+#second number is the answer
+x <- 1
+eval(my_deriv)
+
+```
+
+another option, gives simpler output
+
+Find the slope of \$g(z) = 2 z\^3 -10.5z\^2 +4.1\$
+
+```{r}
+func2 <- expression(2 * z ^ 3 -10.5 *z ^2 +4.1)
+your_deriv <- D(func2, "z")
+your_deriv
+#find derivative over a sequence of values
+z <- seq(from = 0, to = 5, by = 0.5)
+eval(your_deriv)
+```
+
+## Lotka-Volterra Example and Using the ODE function
+
+\*\*Credit:\*\* This code is closely based on the article [Numerically
+solving differential equations with
+R](%5Bhttps://rstudio-pubs-static.s3.amazonaws.com/32888_197d1a1896534397b67fb04e0d4899ae.html)](<https://rstudio-pubs-static.s3.amazonaws.com/32888_197d1a1896534397b67fb04e0d4899ae.html>))
+
+As described in the lecture, the Lotke-Volterra models have been used to
+describe predator-prey populations.
+
+#### Prey equation:
+
+$$\frac{dx}{dt}=\alpha x-\beta xy$$
+
+From Wikipedia: "The prey are assumed to have an unlimited food supply
+and to reproduce exponentially, unless subject to predation; this
+exponential growth is represented in the equation above by the term
+\$\\alpha x\$. The rate of predation upon the prey is assumed to be
+proportional to the rate at which the predators and the prey meet, this
+is represented above by
+
+$\beta xy$. If either x or y is zero, then there can be no predation."
+
+$$\frac{dy}{dt}=\delta xy - \gamma y$$
+
+From Wikipedia: "In this equation, $\delta xy$ represents the growth of
+the predator population. (Note the similarity to the predation rate;
+however, a different constant is used, as the rate at which the predator
+population grows is not necessarily equal to the rate at which it
+consumes the prey). The term $\gamma y$ represents the loss rate of the
+predators due to either natural death or emigration, it leads to an
+exponential decay in the absence of prey.
+
+Where:
+
+\- $x$ is prey population (e.g. rabbits)
+
+\- $y$ is predator population (e.g. wolves)
+
+\- $\alpha, \beta, \gamma, \delta$ are positive parameters
+
+To find an approximate solution in R, we will need four things:
+
+-   Parameter values
+
+-   A sequence of times over which we'll approximate predator & prey
+    populations -
+
+-   An initial condition (initial populations of predator & prey at t =
+
+    0)  
+
+        -   
+
+-   The differential equations that need to be solved
+
+Solving the Lotke-Volterra equation:
+
+```{r}
+# Create a sequence of times (days): 
+time <- seq(0, 25, by = 0.05)
+
+# Set some parameter values (these can change - keep it in mind):
+parameters <- c(alpha = .85, beta = 0.8, delta = 0.5, gamma = 1)
+
+# Set the initial condition (prey and predator populations at t = 0).
+# Recall: x = prey, y = predator
+init_cond <- c(x = 5, y = 3)
+
+# Prepare the series of differential equations as a function: 
+lk_equations <- function(time, init_cond, parameters) {
+  with(as.list(c(init_cond, parameters)), {
+    dxdt = alpha * x - beta * x * y
+    dydt = delta * x * y - gamma * y
+    return(list(c(dxdt, dydt)))
+  })
+}
+
+# Find the approximate the solution using `deSolve::ode()`:
+approx_lk <- ode(y = init_cond, times = time, func = lk_equations, parms = parameters)
+
+# Check the class: 
+class(approx_lk)
+
+# We really want this to be a data frame, and we want both prey (x) and predator (y) to be in the same column -- we'll learn why in EDS 221 (tidy data)
+approx_lk_df <- data.frame(approx_lk) %>% 
+  pivot_longer(cols = c(x,y), names_to = "species", values_to = "population")
+
+# Plot it! 
+ggplot(data = approx_lk_df, aes(x = time, y = population)) +
+  geom_line(aes(color = species))
+
+
+
+```
+
+# Vectors, Matrices and dot product
+
+## making vectors
+
+```{r}
+marmots <- c("blue", "green", 4, "yellow")
+
+#Check the class
+
+class(marmots)
+
+pika <- c(12.4, 6.8, 2.9, 8.8, 8.5)
+
+class(pika)
+#scalar multiplier
+
+scalar_pika <- 5.2 * pika
+
+scalar_pika
+#you can also add or subtract vectors ( as long as they are the same length)
+ferret <- c(1, 12, 18, 2, 8)
+
+pika - ferret
+
+```
+
+The dot product is the sum of elements of each vector multiplied
+together, and is a measure of how close the vectors "point" in the same
+direction
+
+```{r}
+pika %*% ferret
+```
+
+\`\`\`
+
+## Matrices
+
+```{r}
+my_values <- seq(from = 1, to = 10, length =200)
+# this will fill the data into a matrix in order going by row
+my_matrix <- matrix(data = my_values, nrow = 2, ncol = 5, byrow = TRUE)
+
+5 * my_matrix
+
+class(my_matrix)
 ```
