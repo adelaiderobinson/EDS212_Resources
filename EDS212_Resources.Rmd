@@ -10,8 +10,8 @@ editor_options:
 
 ## R Markdown Setup
 
-Add packages in the setup chunk\
-the warning chunk sets warnings to not show up in the whole document
+Add packages in the setup chunk the warning chunk sets warnings to not
+show up in the whole document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
@@ -82,10 +82,23 @@ available
 ```{r}
 
 #ggplot(data and mapping, anything to do with variables goes under aes) + type of plot
-#basic scatterplot
+#Scatterplot
 ggplot(data = penguins, mapping = aes(x = body_mass_g, y = flipper_length_mm)) + geom_point(aes(color = species)) + labs(title = "Penguin", y = "Flipper length (mm)", x = "Body Mass (g)") 
+# Histogram
+#remember only on varaible for a histogram
+ggplot(data = penguins, mapping = aes(x = bill_depth_mm)) + geom_histogram(color = "blue", aes(fill = species)) + labs(title = "Penguin Bill Depth", x = "Bill Depth (mm)", y = "Penguins") + theme_classic()
 
 
+```
+
+## Jitterplots
+
+these are designed to separate values where a lot of data overlaps.
+Doesn't look too different for this since the points do not extensively
+overlap.
+
+```{r}
+ggplot(data = penguins, aes(x = flipper_length_mm, y= bill_depth_mm))+ geom_jitter()
 
 ```
 
