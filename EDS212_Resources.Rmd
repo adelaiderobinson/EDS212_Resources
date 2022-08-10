@@ -74,21 +74,50 @@ their changes.Make sure to save before pushing.
 
 The second person should be able to pull git pull and see those changes.
 
-# GGplot
+## working with branches
+
+creating a branch git checkout -B name of branch git push - u origin
+new-branch (establishes remote repo) \# GGplot
 
 Add the tidyverse package in the setup chunk, and make sure data is
 available
+
+# GG plot
+
+## Scatter Plot
 
 ```{r}
 
 #ggplot(data and mapping, anything to do with variables goes under aes) + type of plot
 #Scatterplot
 ggplot(data = penguins, mapping = aes(x = body_mass_g, y = flipper_length_mm)) + geom_point(aes(color = species)) + labs(title = "Penguin", y = "Flipper length (mm)", x = "Body Mass (g)") 
-# Histogram
-#remember only on varaible for a histogram
+
+
+
+```
+
+## box-plot
+
+```{r}
+#discrete variables on x, continuous on y
+#middle line is the median
+#lines of box at 1st and 3rd quartile
+ggplot(data = penguins, aes(x = species, y = flipper_length_mm)) +geom_boxplot() + labs(title = "Penguin Flipper Length", y = "Species", x = "Flipper Length(mm)")
+```
+
+## Facet-Wrap
+
+```{r}
+ggplot(data=penguins, aes(x = flipper_length_mm, y = body_mass_g)) +geom_point(aes(color = species)) +facet_wrap(~island, ncol =1)
+
+```
+
+## Histogram
+
+```{r}
+
+#remember only one x varaible for a histogram, needs to be continous
 ggplot(data = penguins, mapping = aes(x = bill_depth_mm)) + geom_histogram(color = "blue", aes(fill = species)) + labs(title = "Penguin Bill Depth", x = "Bill Depth (mm)", y = "Penguins") + theme_classic()
-
-
 ```
 
 ## Jitterplots
@@ -100,6 +129,18 @@ overlap.
 ```{r}
 ggplot(data = penguins, aes(x = flipper_length_mm, y= bill_depth_mm))+ geom_jitter()
 
+```
+
+## additional customization
+
+### titling your graph  "**y-axis variable vs.** x-axis variable."
+
+```{r}
+ggplot(data = penguins, aes(x = flipper_length_mm, y = body_mass_g))+ geom_point(aes(color = species)) +labs(title = "Penguin body Mass vs Flipper Length", x = "Body Mass (g)", y = "Flipper Length (mm)", subtitle = "Palmer Penguins", caption = "EDS 212") + # manually choose colors
+  scale_color_manual(values = c("pink", "red", "violet"))+
+  #center labels
+  theme(plot.title=element_text(hjust=0.5),
+        plot.subtitle=element_text(hjust=0.5), plot.caption = element_text(hjust=0.5))
 ```
 
 # Functions
