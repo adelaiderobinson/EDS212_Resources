@@ -14,6 +14,7 @@ Add packages in the setup chunk the warning chunk sets warnings to not
 show up in the whole document
 
 ```{r setup, include=FALSE}
+#says nothing from this code chunk will show up 
 knitr::opts_chunk$set(warning = FALSE, message = FALSE)
 knitr::opts_chunk$set(echo = TRUE)
 
@@ -25,7 +26,8 @@ library(kableExtra)
 
 # R Markdown notes
 
-adding a line break, two trailing spaces and then hit return
+adding a line break, two trailing spaces and then hit return\
+to add code in line, `r 1+1`
 
 # Github
 
@@ -223,7 +225,7 @@ z <- seq(from = 0, to = 5, by = 0.5)
 eval(your_deriv)
 ```
 
-## Lotka-Volterra Example and Using the ODE function
+##  ODE function & Lotka-Volterra Example
 
 \*\*Credit:\*\* This code is closely based on the article [Numerically
 solving differential equations with
@@ -239,7 +241,7 @@ $$\frac{dx}{dt}=\alpha x-\beta xy$$
 From Wikipedia: "The prey are assumed to have an unlimited food supply
 and to reproduce exponentially, unless subject to predation; this
 exponential growth is represented in the equation above by the term
-\$\\alpha x\$. The rate of predation upon the prey is assumed to be
+$alpha * x$. The rate of predation upon the prey is assumed to be
 proportional to the rate at which the predators and the prey meet, this
 is represented above by
 
@@ -273,8 +275,6 @@ To find an approximate solution in R, we will need four things:
 -   An initial condition (initial populations of predator & prey at t =
 
     0)  
-
-        -   
 
 -   The differential equations that need to be solved
 
@@ -344,6 +344,8 @@ pika - ferret
 
 ```
 
+## dot product
+
 The dot product is the sum of elements of each vector multiplied
 together, and is a measure of how close the vectors "point" in the same
 direction
@@ -364,4 +366,27 @@ my_matrix <- matrix(data = my_values, nrow = 2, ncol = 5, byrow = TRUE)
 5 * my_matrix
 
 class(my_matrix)
+```
+
+Further info on matrices in eds 221
+
+# Logical Expressions
+
+```{r}
+#if 5 =1 
+5 == 1
+"cat" == "dog"
+# true if cat does not equal dog
+"cat" != "dog"
+# runs through the vector and checks for each
+meds <- c(1,2,3,4,5)
+meds == 3
+meds == 1 | meds >3
+
+teddy <- 5
+banjo <- 7 
+tallie <- 4
+
+
+teddy <= banjo
 ```
