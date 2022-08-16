@@ -60,6 +60,11 @@ type nameofdoc.filetype for a specific file
 
 example: eds212.html, \*.html
 
+note that if you don't do this from the very start you will need to
+delete the file from github, this is the terminal command
+
+    git rm file1.txt -F
+
 ## Working collaboratively in git
 
 ### Working without Branches
@@ -133,6 +138,17 @@ ggplot(data = penguins, aes(x = flipper_length_mm, y= bill_depth_mm))+ geom_jitt
 
 ```
 
+## Column Plot
+
+```{r}
+test<- penguins |> group_by(island, sex) |> summarize(total_penguins = n())
+
+test |> ggplot(aes(x = island, y = total_penguins)) + geom_col()
+
+#option to make this a proportion instead
+test |> ggplot(aes(x = island, y = total_penguins, fill = sex)) + geom_col(position = "fill") + labs( y = "proportion of penguins", x = "island") +theme_minimal()
+```
+
 ## additional customization
 
 ### titling your graph  "**y-axis variable vs.** x-axis variable."
@@ -143,6 +159,11 @@ ggplot(data = penguins, aes(x = flipper_length_mm, y = body_mass_g))+ geom_point
   #center labels
   theme(plot.title=element_text(hjust=0.5),
         plot.subtitle=element_text(hjust=0.5), plot.caption = element_text(hjust=0.5))
+```
+
+```{r}
+#add this to control scale and labels if you want them to be continuous
+#scale_x_continuous(breaks=c(2008:2018), labels=c(2008:2018),limits=c(2008,2018)
 ```
 
 # Functions
@@ -225,7 +246,7 @@ z <- seq(from = 0, to = 5, by = 0.5)
 eval(your_deriv)
 ```
 
-##  ODE function & Lotka-Volterra Example
+## ODE function & Lotka-Volterra Example
 
 \*\*Credit:\*\* This code is closely based on the article [Numerically
 solving differential equations with
