@@ -93,10 +93,28 @@ The second person should be able to pull git pull and see those changes.
 ## working with branches
 
 creating a branch git checkout -B name of branch git push - u origin
-new-branch (establishes remote repo) \# GGplot
+new-branch (establishes remote repo)
 
 Add the tidyverse package in the setup chunk, and make sure data is
 available
+
+## Working in the terminal 
+
+**Pwd**
+See all sub- ls
+
+Cd- change directory
+
+Cd.. go out one level
+
+Cd ../.. go up to levels 
+
+Navigate to the project folder
+
+Adding the project to be a git repo
+git init: this creates a local git repo
+git add -A
+Git commit -m \"message\"
 
 # GG plot
 
