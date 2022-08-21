@@ -22,6 +22,15 @@ library(tidyverse)
 library(palmerpenguins)
 library(deSolve)
 library(kableExtra)
+library(here)
+library(patchwork)
+library(ggrepel)
+library(gghighlight)
+library(paletteer)
+library(ggExtra)
+library(ggbeeswarm)
+library(gapminder)
+library (sf)
 ```
 
 # R Markdown notes
@@ -100,7 +109,8 @@ available
 ggplot(data = penguins, mapping = aes(x = body_mass_g, y = flipper_length_mm)) + geom_point(aes(color = species)) + labs(title = "Penguin", y = "Flipper length (mm)", x = "Body Mass (g)") 
 
 
-
+#reading in data 
+lizards <- read_csv(here("lizards.csv"))
 ```
 
 ## box-plot
@@ -116,6 +126,7 @@ ggplot(data = penguins, aes(x = species, y = flipper_length_mm)) +geom_boxplot()
 
 ```{r}
 ggplot(data=penguins, aes(x = flipper_length_mm, y = body_mass_g)) +geom_point(aes(color = species)) +facet_wrap(~island, ncol =1)
+#add scales = free if you don't care about scales matching 
 
 ```
 
@@ -138,6 +149,34 @@ ggplot(data = penguins, aes(x = flipper_length_mm, y= bill_depth_mm))+ geom_jitt
 
 ```
 
+## Beeswarm plot
+
+```{r}
+whiptails <- lizards |> 
+  filter(common_name == "western whiptail") |> 
+  drop_na(total_length, weight)
+
+whiptail_bee <- ggplot(data = whiptails, aes(x = sex, y = weight)) +
+  geom_beeswarm(size = 0.5) + geom_boxplot(fill = NA)
+
+
+ggplot(data = whiptails, aes(x = sex, y = weight)) +
+  geom_beeswarm(size = 0.5) + geom_boxplot(fill = NA)
+
+
+```
+
+## Marginal plot
+
+```{r}
+whiptail_plot <- whiptails |> 
+  ggplot(aes( x = total_length, y = weight)) + geom_point(aes(color = sex)) +
+  theme(legend.position = "bottom")
+
+
+ggMarginal(whiptail_plot, type = "boxplot", groupColour = TRUE)
+```
+
 ## Column Plot
 
 ```{r}
@@ -147,6 +186,15 @@ test |> ggplot(aes(x = island, y = total_penguins)) + geom_col()
 
 #option to make this a proportion instead
 test |> ggplot(aes(x = island, y = total_penguins, fill = sex)) + geom_col(position = "fill") + labs( y = "proportion of penguins", x = "island") +theme_minimal()
+```
+
+## Patchwork plot
+
+```{r}
+(whiptail_bee + whiptail_plot / whiptail_bee) #side by side
+
+(whiptail_bee / whiptail_plot) #columns
+
 ```
 
 ## additional customization
@@ -164,6 +212,145 @@ ggplot(data = penguins, aes(x = flipper_length_mm, y = body_mass_g))+ geom_point
 ```{r}
 #add this to control scale and labels if you want them to be continuous
 #scale_x_continuous(breaks=c(2008:2018), labels=c(2008:2018),limits=c(2008,2018)
+```
+
+## Factor reorder
+
+allows you to change away from the default order
+
+```{r}
+lizard_counts <- lizards |> 
+  count(common_name)
+
+ggplot(data = lizard_counts, 
+       aes(y = fct_reorder(common_name, n),# reorder common names by number
+           x = n)) +
+  geom_col()
+```
+
+## Customization
+
+Basic non aes changes
+
+```{r}
+lizards |> ggplot(aes(x = total_length)) + 
+  geom_histogram(color = "orange",
+                 size = 0.3,
+                 fill = "purple",
+                 linetype = "dotted"
+                 )
+#changes aesthetic not based on variable, don't put w/in aes
+
+
+```
+
+### Scaling Colors
+
+```{r}
+#gradient
+ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point(aes(color = weight)) +
+  scale_color_gradient(low = "purple", high ="orange")
+
+#gradint with custom colors
+
+ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point(aes(color = weight)) +
+  scale_color_gradientn(
+    colors = c("magenta", "cyan 4", "darkorchid3", "dodgerblue","green", "yellow"))
+
+#step scale
+ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point(aes(color = weight)) +
+  scale_color_steps(low = "red", high = "black")
+
+#steps with middle color
+ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point(aes(color = weight)) +
+  scale_color_steps2(
+    low = "purple",
+    mid = "white",
+    high = "black",
+    midpoint = 50,
+    breaks = c(15, 30, 45))
+
+
+
+ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point(aes(color = total_length)) +
+  scale_color_stepsn(colors = c("orange",
+                                "red",
+                                "purple"),
+                     breaks = seq(from = 0, to =300, by = 60))
+
+
+```
+
+### Color fills with palateer
+
+```{r}
+lizards_median <- lizards |> 
+  mutate(common_name = fct_reorder(common_name, total_length,
+                                   .fun = median))
+#create a new column, overwrites existing column, recast common name as a factor 
+
+
+ggplot(data = lizards_median, aes(y = common_name, x = total_length)) +
+  geom_boxplot(aes(fill = common_name), show.legend = FALSE) +
+  scale_fill_paletteer_d(palette = "nationalparkcolors::CraterLake")+
+  theme_minimal()
+ #view palateer options 
+#view(paletteer::palettes_d_names)
+```
+
+### Options within Theme
+
+```{r}
+ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point(aes(color = weight)) + 
+  theme(panel.grid.major.x = element_line(color = "red"),
+        panel.grid.minor.y = element_blank(), # leave it blank
+        axis.title.x = element_text(color = "purple"),
+        axis.text.y = element_text(color = "green"),
+        text = element_text(size = ),
+        panel.background = element_rect(color = "purple", fil = "yellow")) + annotate("text", x = 300, y = 50, label = "woooo", color = "green") +
+  geom_vline(xintercept = 250, linetype = "dashed",
+             color = "orange")
+      
+```
+
+### ggrepel
+
+```{r}
+wws_lizards <- lizards |> filter(common_name == "western whiptail",
+                      site == "sand")
+
+#bad labels
+ggplot(data = wws_lizards, aes(x = total_length, y = weight)) +
+  geom_point()+
+  geom_text(aes(label = toe_num))
+
+#dodge points
+ggplot(data = wws_lizards, aes(x = total_length, y = weight)) +
+  geom_point()+
+  geom_text_repel(aes(label = toe_num))
+
+
+gapminder |> 
+  filter(year == 2002, continent == "Europe") |> 
+  ggplot(aes(x = gdpPercap, y = lifeExp)) +
+  geom_point() +
+  geom_text_repel(aes(label = country, size = 2))
+
+```
+
+### gghighlight
+
+```{r}
+ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point() +
+  gghighlight(toe_num == 250, label_key = toe_num)+ #gets overwritten by next line
+  gghighlight(weight >30, label_key = toe_num)
 ```
 
 # Functions
