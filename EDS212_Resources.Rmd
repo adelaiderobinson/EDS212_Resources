@@ -130,6 +130,21 @@ ggplot(data=penguins, aes(x = flipper_length_mm, y = body_mass_g)) +geom_point(a
 
 ```
 
+## Facet-Grid
+
+\- \`facet_grid()\`: the one where you make a grid based on row & column
+faceting variables
+
+But what if we want to make a grid where the panels are split across
+groups by lizard sex and if it has a broken tail or not? Since we have
+two variables being used to create our grid, we'll use \`facet_grid()\`:
+
+```{r}
+ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point() +
+  facet_grid(sex ~ tail)
+```
+
 ## Histogram
 
 ```{r}
@@ -197,26 +212,31 @@ test |> ggplot(aes(x = island, y = total_penguins, fill = sex)) + geom_col(posit
 
 ```
 
-## additional customization
-
-### titling your graph  "**y-axis variable vs.** x-axis variable."
+## Heat map
 
 ```{r}
-ggplot(data = penguins, aes(x = flipper_length_mm, y = body_mass_g))+ geom_point(aes(color = species)) +labs(title = "Penguin body Mass vs Flipper Length", x = "Body Mass (g)", y = "Flipper Length (mm)", subtitle = "Palmer Penguins", caption = "EDS 212") + # manually choose colors
-  scale_color_manual(values = c("pink", "red", "violet"))+
-  #center labels
-  theme(plot.title=element_text(hjust=0.5),
-        plot.subtitle=element_text(hjust=0.5), plot.caption = element_text(hjust=0.5))
+# Get the counts: 
+lizard_counts <- lizards %>% 
+  mutate(date = lubridate::mdy(date)) %>% 
+  count(year = lubridate::year(date), common_name) %>% 
+  drop_na()
+
+# Make a heatmap of counts:
+ggplot(data = lizard_counts, aes(x = year, y = common_name)) +
+  geom_tile(aes(fill = n), show.legend = FALSE) +
+  geom_text(aes(label = n), color = "white", size = 3) +
+  scale_fill_gradientn(colors = c("navy","red","orange")) +
+  theme_minimal() +
+  labs(x = "Year", y = "Lizard common name")
 ```
 
-```{r}
-#add this to control scale and labels if you want them to be continuous
-#scale_x_continuous(breaks=c(2008:2018), labels=c(2008:2018),limits=c(2008,2018)
-```
+## Spatial Maps
 
-## Factor reorder
+use geom_sf
 
-allows you to change away from the default order
+see eds 221 day 8 data_viz for example
+
+## Factor Reorder
 
 ```{r}
 lizard_counts <- lizards |> 
@@ -226,6 +246,18 @@ ggplot(data = lizard_counts,
        aes(y = fct_reorder(common_name, n),# reorder common names by number
            x = n)) +
   geom_col()
+```
+
+## Titling graph
+
+y axis variable vs x axis variable
+
+```{r}
+ggplot(data = penguins, aes(x = flipper_length_mm, y = body_mass_g))+ geom_point(aes(color = species)) +labs(title = "Penguin body Mass vs Flipper Length", x = "Body Mass (g)", y = "Flipper Length (mm)", subtitle = "Palmer Penguins", caption = "EDS 212") + # manually choose colors
+  scale_color_manual(values = c("pink", "red", "violet"))+
+  #center labels
+  theme(plot.title=element_text(hjust=0.5),
+        plot.subtitle=element_text(hjust=0.5), plot.caption = element_text(hjust=0.5))
 ```
 
 ## Customization
@@ -245,6 +277,20 @@ lizards |> ggplot(aes(x = total_length)) +
 ```
 
 ### Scaling Colors
+
+We've learned to use \`scales\` functions to update breaks and labels.
+It is also useful for updating aesthetics, for example to customize
+color gradients, set size bins, and more.
+
+Again, it is very important to know \*\*what aesthetic you are trying to
+update.\*\*
+
+For example, is it a \*\*fill\*\* aesthetic you're hoping to customize?
+Then you might use \`scale_fill\_\*()\`. But if it is a \*\*color\*\*
+aesthetic, you'd use \`scale_color\_\*()\` functions. If it is the
+transparency, then \`scale_alpha\_\*()\`. If it is the shape, then
+\`scale_shape\_\*()\`. So make sure you know \*which aesthetic you are
+hoping to change with scales!\*
 
 ```{r}
 #gradient
@@ -351,6 +397,102 @@ ggplot(data = lizards, aes(x = total_length, y = weight)) +
   geom_point() +
   gghighlight(toe_num == 250, label_key = toe_num)+ #gets overwritten by next line
   gghighlight(weight >30, label_key = toe_num)
+```
+
+### Breaks and Limits
+
+The important thing: know \*what type of variable you have on each
+axis\* so that you know what \`scale\_\` version to call. For example:
+
+\- For dates: \`scale\_\*\_date()\`
+
+\- For continuous variables: \`scale\_\*\_continuous()\`
+
+\- For discrete variables: \`scale\_\*\_discrete()\`
+
+Within those layers added to your plot, you can update the \`breaks =
+\`, \`limits = \`, \`labels = \` and \`expand = \`options.
+
+```{r}
+ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point()
+
+ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point() +
+  scale_x_continuous(breaks = c(0, 250, 500), 
+                     limits = c(0, 500)) +
+  scale_y_continuous(breaks = seq(from = 0, to = 70, by = 10), 
+                     limits = c(0, 70)) +
+  theme_light()
+```
+
+convert to a log scale
+
+```{r}
+ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point() +
+  scale_x_log10()
+```
+
+formatting axis dates
+
+```{r}
+lizard_counts <- lizards %>% 
+  mutate(date = lubridate::mdy(date)) %>% 
+  count(date)
+
+ggplot(data = lizard_counts, aes(x = date, y = n)) +
+  geom_line() +
+  scale_x_date(breaks = scales::breaks_width("3 years"), # See date_breaks for next year!
+               labels = scales::label_date("'%y")) + # See date_labels for next year!
+  scale_y_log10(labels = scales::label_scientific())
+
+ggplot(data = lizard_counts, aes(x = date, y = n)) +
+  geom_line() +
+  scale_x_date(breaks = scales::breaks_pretty())
+```
+
+### gridlines and panel colors
+
+```{r}
+p <- ggplot(data = lizards, aes(x = total_length, y = weight)) +
+  geom_point()
+
+p + 
+  theme(panel.grid = element_blank()) # removes all gridlines (major & minor)
+
+p + 
+  theme(panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(color = "red"))
+
+# Now let's just go bananas with some theme stuff: 
+
+p + 
+  theme(panel.background = element_rect(color = "purple", size = 3, fill = "yellow"),
+        panel.grid.major.y = element_line(color = "orange"),
+        panel.grid.major.x = element_blank(),
+        axis.text.x = element_text(color = "blue"),
+        axis.text.y = element_text(color = "cyan"),
+        axis.title.x = element_text(color = "green"),
+        axis.title.y = element_text(color = "gray70"),
+        text = element_text(size = 12, family="serif"),
+        plot.background = element_rect(fill = "pink"))
+```
+
+### Direct annotation
+
+```{r}
+p +
+  annotate("text", x = 100, y = 50, label = "COOL!", color = "purple") +
+  annotate("text", x = 400, y = 25, label = "WHOA.", color = "red") +
+  geom_hline(yintercept = 40, linetype = "dotted", color = "blue") +
+  geom_vline(xintercept = 20, linetype = "dashed", color = "green") +
+  theme_minimal()
+
+# Or, have the value be determined based on a variable: 
+p +
+  geom_hline(yintercept = mean(lizards$weight), linetype = "dashed", color = "red") +
+  annotate("text", x = 350, y = mean(lizards$weight) + 2, label = "Mean weight", color = "red")
 ```
 
 # Functions
